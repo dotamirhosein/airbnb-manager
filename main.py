@@ -1,15 +1,16 @@
+from bookings import create_booking
 from properties import create_property
 from storage import save_properties, load_properties, save_guests, load_guests, save_bookings, load_bookings
 from guests import create_guest
-from bookings import create_booking
 from datetime import datetime
 from reports import total_income, bookings_per_property, monthly_income
+from validators import is_valid_date, has_conflict
 
 
 def main():
     properties = load_properties()
     guests = load_guests()
-    bookings = load_bookings()
+    booking_list = load_bookings()
     while True:
         print("\n1. Add Property")
         print("\n2. View Property")
@@ -35,23 +36,23 @@ def main():
         elif choice == "4":
             view_guests(guests)
         elif choice == "5":
-            b = add_booking(properties, guests)
+            b = add_booking(properties, guests, booking_list)
             if b is not None:
-                bookings.append(b)
-                save_bookings(bookings)
+                booking_list.append(b)
+                save_bookings(booking_list)
                 print("Booking Saved!")
             
         elif choice == "6":
-            view_bookings(bookings)
+            view_bookings(booking_list)
         elif choice == "7":
-            print(f"Total Income: ${total_income(bookings):.2f}")
+            print(f"Total Income: ${total_income(booking_list):.2f}")
             print("\nBookings per property: ")
-            counts = bookings_per_property(bookings, properties)
+            counts = bookings_per_property(booking_list, properties)
             for i, count in enumerate(counts.values(), 1):
                 print(f"Property #{i}: {count} bookings.")
             
             print("\nMonthly Income:")
-            monthly = monthly_income(bookings)
+            monthly = monthly_income(booking_list)
             for month, income in sorted(monthly.items()):
                 print(f"{month}: ${income:.2f}")
         elif choice == "8":
@@ -91,7 +92,7 @@ def view_guests(guests):
         print(f"Phone: {g['phone']}")
         print(f"Email: {g['email']}")
 
-def add_booking(properties, guests):
+def add_booking(properties, guests, booking_list):
     if not properties:
         print("No properties available for booking.")
         return None
@@ -109,19 +110,27 @@ def add_booking(properties, guests):
     
     start_date = input("Start date (e.g. 2026-02-20): ")
     end_date = input("End date (e.g. 2026-02-22): ")
+
+    if not is_valid_date(start_date) or not is_valid_date(end_date):
+        print("Invalid Date Format!")
+        return None
+    
+    if has_conflict(start_date, end_date, booking_list, prop_index + 1):
+        print("Property is already booked for some/all of these dates!")
+        return None
     
     try:
         start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
         end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
         
-        nights = (end_date_obj - start_date_obj).days  # ← اول محاسبه، بعد چک
+        nights = (end_date_obj - start_date_obj).days 
         
         if nights <= 0:
             print("End date must be after start date!")
             return None
         
         price_per_night = properties[prop_index]["price_per_night"]
-        total_price = nights * price_per_night  # ← املای درست
+        total_price = nights * price_per_night 
         
         print(f"Total price will be {nights} nights * {price_per_night} = {total_price}")
         

@@ -20,5 +20,17 @@
             " Bathroom"
         ],
         "status": "Avaiable"
+    },
+    {
+        "name": "DoubleTree",
+        "address": "Muscat, Al Sijah",
+        "rooms": 3,
+        "price_per_night": 199.0,
+        "amenities": [
+            "Sea View",
+            " Balcony",
+            " Coffee"
+        ],
+        "status": "Available"
     }
 ]

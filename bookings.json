@@ -19,5 +19,26 @@
         "start_date": "2026-04-10",
         "end_date": "2026-04-20",
         "total_price": 990.0
+    },
+    {
+        "property_id": 2,
+        "guest_id": 1,
+        "start_date": "2026-03-03",
+        "end_date": "2026-03-10",
+        "total_price": 693.0
+    },
+    {
+        "property_id": 3,
+        "guest_id": 1,
+        "start_date": "2026-01-01",
+        "end_date": "2026-01-02",
+        "total_price": 199.0
+    },
+    {
+        "property_id": 3,
+        "guest_id": 1,
+        "start_date": "2026-03-03",
+        "end_date": "2026-03-08",
+        "total_price": 995.0
     }
 ]
