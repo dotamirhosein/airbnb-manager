@@ -1,0 +1,24 @@
+[
+    {
+        "name": "dmc",
+        "address": "London",
+        "rooms": 2,
+        "price_per_night": 79.0,
+        "amenities": [
+            "ANC",
+            " Water"
+        ],
+        "status": "Available"
+    },
+    {
+        "name": "Hilton",
+        "address": "Munich",
+        "rooms": 3,
+        "price_per_night": 99.0,
+        "amenities": [
+            "Terrace",
+            " Bathroom"
+        ],
+        "status": "Avaiable"
+    }
+]
