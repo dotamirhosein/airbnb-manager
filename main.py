@@ -6,12 +6,15 @@ from bookings import create_booking
 def main():
     properties = load_properties()
     guests = load_guests()
+    bookings = load_bookings()
     while True:
         print("\n1. Add Property")
         print("\n2. View Property")
         print("\n3. Add Guest")
         print("\n4. View Guests")
-        print("\n5. Exit")
+        print("\n5. Add Bookings")
+        print("\n6. View Bookings")
+        print("\n7. Exit")
         choice = input("Choose: ")
         if choice == "1":
             p = add_property()
@@ -28,6 +31,15 @@ def main():
         elif choice == "4":
             view_guests(guests)
         elif choice == "5":
+            b = add_booking(properties, guests)
+            if b is not None:
+                bookings.append(b)
+                save_bookings(bookings)
+                print("Booking Saved!")
+            
+        elif choice == "6":
+            view_bookings(bookings)
+        elif choice == "7":
             break
 
 def add_property():
@@ -63,6 +75,46 @@ def view_guests(guests):
         print(f"\n#{i} {g['name']}")
         print(f"Phone: {g['phone']}")
         print(f"Email: {g['email']}")
+
+def add_booking(properties, guests):
+    if not properties:
+        print("No properties available for booking.")
+        return None
+    if not guests:
+        print("No guests available for booking.")
+        return None
+
+    print("\n=== Properties ===")
+    view_properties(properties)
+    prop_index = int(input("\nSelect property number: ")) - 1
+
+    print("\n=== Guests ===")
+    view_guests(guests)
+    guest_index = int(input("\nSelect guest number: ")) - 1
+
+    start_date = input("Start date (e.g. 2026-02-20): ")
+    end_date = input("End date (e.g. 2026-02-22): ")
+
+    nights = int(input("Number of nights: "))
+    price_per_night = properties[prop_index]["price_per_night"]
+    total_price = nights * price_per_night
+
+    print(f"Total price will be: {nights} * {price_per_night} = {total_price}")
+
+    property_id = prop_index + 1
+    guest_id = guest_index + 1
+
+    return create_booking(property_id, guest_id, start_date, end_date, total_price)
+
+
+def view_bookings(bookings):
+    if not bookings:
+        print("No bookings found.")
+        return
+    for i, b in enumerate(bookings, 1):
+        print(f"\n#{i} Property #{b['property_id']} | Guest #{b['guest_id']}")
+        print(f"   From: {b['start_date']} To: {b['end_date']}")
+        print(f"   Total price: {b['total_price']}")
 
 if __name__ == "__main__":
     main()
