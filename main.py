@@ -2,6 +2,8 @@ from properties import create_property
 from storage import save_properties, load_properties, save_guests, load_guests, save_bookings, load_bookings
 from guests import create_guest
 from bookings import create_booking
+from datetime import datetime
+
 
 def main():
     properties = load_properties()
@@ -83,28 +85,41 @@ def add_booking(properties, guests):
     if not guests:
         print("No guests available for booking.")
         return None
-
+    
     print("\n=== Properties ===")
     view_properties(properties)
-    prop_index = int(input("\nSelect property number: ")) - 1
-
+    prop_index = int(input("\nSelect Property number: ")) -1 
+    
     print("\n=== Guests ===")
     view_guests(guests)
-    guest_index = int(input("\nSelect guest number: ")) - 1
-
+    guest_index = int(input("\nSelect guest number: ")) - 1  
+    
     start_date = input("Start date (e.g. 2026-02-20): ")
     end_date = input("End date (e.g. 2026-02-22): ")
-
-    nights = int(input("Number of nights: "))
-    price_per_night = properties[prop_index]["price_per_night"]
-    total_price = nights * price_per_night
-
-    print(f"Total price will be: {nights} * {price_per_night} = {total_price}")
-
-    property_id = prop_index + 1
-    guest_id = guest_index + 1
-
-    return create_booking(property_id, guest_id, start_date, end_date, total_price)
+    
+    try:
+        start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
+        end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
+        
+        nights = (end_date_obj - start_date_obj).days  # ← اول محاسبه، بعد چک
+        
+        if nights <= 0:
+            print("End date must be after start date!")
+            return None
+        
+        price_per_night = properties[prop_index]["price_per_night"]
+        total_price = nights * price_per_night  # ← املای درست
+        
+        print(f"Total price will be {nights} nights * {price_per_night} = {total_price}")
+        
+        property_id = prop_index + 1
+        guest_id = guest_index + 1
+        
+        return create_booking(property_id, guest_id, start_date, end_date, total_price)
+    
+    except ValueError:
+        print("Invalid date format. Use YYYY-MM-DD.")
+        return None
 
 
 def view_bookings(bookings):
