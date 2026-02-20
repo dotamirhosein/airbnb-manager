@@ -32,5 +32,17 @@
             " Coffee"
         ],
         "status": "Available"
+    },
+    {
+        "name": "Creek Palm",
+        "address": "Dubai, Palm",
+        "rooms": 2,
+        "price_per_night": 119.0,
+        "amenities": [
+            "Creek view",
+            "Sun View",
+            "Washing Machine"
+        ],
+        "status": "available"
     }
 ]

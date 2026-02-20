@@ -73,24 +73,30 @@ def add_guest():
     email = input("Add Guest E-Mail: ")
     return create_guest(name, phone, email)
 
-def view_properties(properties):
+def view_properties(properties=None):
+    if properties is None:
+        properties = load_properties()
     if not properties:
         print("No Properties Found.")
-        return
+        return []
     for i, p in enumerate(properties, 1):
         print(f"\n#{i} {p['name']} - {p['address']}")
         print(f"Rooms: {p['rooms']} | Price: ${p['price_per_night']}/night")
         print(f"Amentities: {', '.join(p['amenities'])}")
         print(f"Status: {p['status']}")
+    return properties
 
-def view_guests(guests):
+def view_guests(guests=None):
+    if guests is None:
+        guests = load_guests()
     if not guests:
         print("No guest found.")
-        return
+        return []
     for i, g in enumerate(guests, 1):
         print(f"\n#{i} {g['name']}")
         print(f"Phone: {g['phone']}")
         print(f"Email: {g['email']}")
+    return guests
 
 def add_booking(properties, guests, booking_list):
     if not properties:
@@ -124,7 +130,6 @@ def add_booking(properties, guests, booking_list):
         end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
         
         nights = (end_date_obj - start_date_obj).days 
-        
         if nights <= 0:
             print("End date must be after start date!")
             return None
@@ -143,15 +148,18 @@ def add_booking(properties, guests, booking_list):
         print("Invalid date format. Use YYYY-MM-DD.")
         return None
 
-
-def view_bookings(bookings):
+def view_bookings(bookings=None):
+    if bookings is None:
+        bookings = load_bookings()
     if not bookings:
         print("No bookings found.")
-        return
+        return []
     for i, b in enumerate(bookings, 1):
         print(f"\n#{i} Property #{b['property_id']} | Guest #{b['guest_id']}")
         print(f"   From: {b['start_date']} To: {b['end_date']}")
         print(f"   Total price: {b['total_price']}")
+    return bookings
+
 
 if __name__ == "__main__":
     main()
