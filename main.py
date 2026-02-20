@@ -3,6 +3,7 @@ from storage import save_properties, load_properties, save_guests, load_guests, 
 from guests import create_guest
 from bookings import create_booking
 from datetime import datetime
+from reports import total_income, bookings_per_property, monthly_income
 
 
 def main():
@@ -16,7 +17,8 @@ def main():
         print("\n4. View Guests")
         print("\n5. Add Bookings")
         print("\n6. View Bookings")
-        print("\n7. Exit")
+        print("\n7. Total Income")
+        print("\n8. Exit")
         choice = input("Choose: ")
         if choice == "1":
             p = add_property()
@@ -42,6 +44,17 @@ def main():
         elif choice == "6":
             view_bookings(bookings)
         elif choice == "7":
+            print(f"Total Income: ${total_income(bookings):.2f}")
+            print("\nBookings per property: ")
+            counts = bookings_per_property(bookings, properties)
+            for i, count in enumerate(counts.values(), 1):
+                print(f"Property #{i}: {count} bookings.")
+            
+            print("\nMonthly Income:")
+            monthly = monthly_income(bookings)
+            for month, income in sorted(monthly.items()):
+                print(f"{month}: ${income:.2f}")
+        elif choice == "8":
             break
 
 def add_property():
