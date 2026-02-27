@@ -1,50 +1,62 @@
+# Third-party / stdlib imports
 import streamlit as st 
 import json
 import pandas as pd
 from datetime import datetime
+
+# Internal module imports
 from main import add_property, add_guest, view_properties, view_guests, add_booking, view_bookings
 from reports import total_income, bookings_per_property, monthly_income
 
+# App title
 st.title("🏠 Airbnb Manager Dashboard")
 
+# Sidebar navigation — lets the user switch between the four main sections
 menu = st.sidebar.selectbox("Menu:", ["Properties", "Guests", "Bookings", "Reports"])
 
+# Properties section
 if menu == "Properties":
+    # Display existing properties as a table, or show a notice if none exist
     properties = view_properties()
     if properties:
         df = pd.DataFrame(properties)
         st.dataframe(df)
     else:
-        st.info("هیچ property ای نیست.")
+        st.info("There is no Property.")
 
+    # Form to create and persist a new property
     with st.form("add_property"):
-        st.subheader("➕ Add Property")
+        st.subheader("Add Property")
         name = st.text_input("Name")
         address = st.text_input("Address")
         rooms = st.number_input("Number of Room", min_value=1, step=1)
         price = st.number_input("Price Per Night ($)", min_value=0.0, step=10.0)
         amenities_input = st.text_input("Amentites (e.g.: wifi, pool)split with ','")
-        status = st.selectbox("وضعیت", ["available", "booked"])
-        if st.form_submit_button("ذخیره"):
+        status = st.selectbox("Status", ["available", "booked"])
+        if st.form_submit_button("Save"):
             from properties import create_property
             from storage import load_properties, save_properties
+            # Parse the comma-separated amenities string into a clean list
             amenities = [a.strip() for a in amenities_input.split(",") if a.strip()]
             new_p = create_property(name, address, int(rooms), float(price), amenities, status)
             all_props = load_properties()
             all_props.append(new_p)
             save_properties(all_props)
             st.success("Property Added!")
-            st.rerun()
+            st.rerun()  # Refresh the page so the new property appears in the table
 
 
+# Guests section
 elif menu == "Guests":
+    # Display existing guests as a table, or show a notice if none exist
     guests = view_guests()
     if guests:
         df = pd.DataFrame(guests)
         st.dataframe(df)
     else:
         st.info("There is no guest!")
-    
+
+    # Form to create and persist a new guest
     with st.form("add_guest"):
         st.subheader("Add Guest")
         name = st.text_input("Name")
@@ -58,54 +70,64 @@ elif menu == "Guests":
             all_guests.append(new_g)
             save_guests(all_guests)
             st.success("Guest added!")
-            st.rerun()
+            st.rerun()  # Refresh the page so the new guest appears in the table
 
+# Bookings section
 elif menu == "Bookings":
+    # Display existing bookings as a table, or show a notice if none exist
     bookings = view_bookings()
     if bookings:
         df = pd.DataFrame(bookings)
         st.dataframe(df)
     else:
-        st.info("هیچ رزروی نیست.")
+        st.info("No Reservation.")
 
+    # Load properties and guests needed to populate the booking form dropdowns
     props = view_properties()
     guests = view_guests()
 
+    # Only show the booking form when at least one property and one guest exist
     if props and guests:
         with st.form("add_booking"):
-            st.subheader("➕ Add Booking")
+            st.subheader("Add Booking")
+            # Build human-readable name lists for the selectboxes
             prop_names = [p["name"] for p in props]
             guest_names = [g["name"] for g in guests]
             sel_prop = st.selectbox("Property", prop_names)
             sel_guest = st.selectbox("Guest", guest_names)
-            start = st.date_input("تاریخ شروع")
-            end = st.date_input("تاریخ پایان")
-            if st.form_submit_button("رزرو کن"):
+            start = st.date_input("Start Date")
+            end = st.date_input("End Date")
+            if st.form_submit_button("Reserve"):
                 from storage import load_bookings, save_bookings
                 from bookings import create_booking
                 from validators import has_conflict
+                # Resolve selected names back to their list indices (IDs are 1-based)
                 prop_idx = prop_names.index(sel_prop)
                 guest_idx = guest_names.index(sel_guest)
+                # Convert date objects to ISO strings for storage
                 start_str = start.strftime("%Y-%m-%d")
                 end_str = end.strftime("%Y-%m-%d")
                 all_bookings = load_bookings()
+                # Check for date overlap with existing bookings for the same property
                 if has_conflict(start_str, end_str, all_bookings, prop_idx + 1):
-                    st.error("این property در این تاریخ رزرو است!")
+                    st.error("This property is already booked for some/all of these dates!")
                 else:
                     nights = (end - start).days
                     if nights <= 0:
-                        st.error("تاریخ پایان باید بعد از شروع باشد!")
+                        st.error("End date should be after start date!")
                     else:
+                        # Calculate total cost: nightly rate × number of nights
                         total = nights * props[prop_idx]["price_per_night"]
                         b = create_booking(prop_idx+1, guest_idx+1, start_str, end_str, total)
                         all_bookings.append(b)
                         save_bookings(all_bookings)
-                        st.success(f"رزرو شد! {nights} شب — ${total:.2f}")
-                        st.rerun()
+                        st.success(f"Reserved! {nights} Night — ${total:.2f}")
+                        st.rerun()  # Refresh so the new booking appears in the table
     else:
-        st.warning("اول property و guest اضافه کن.")
+        st.warning("First add Property and Guest to make a reservation.")
 
 
+# Reports section
 elif menu == "Reports":
     from reports import total_income, bookings_per_property, monthly_income
     from storage import load_bookings, load_properties
@@ -113,16 +135,19 @@ elif menu == "Reports":
     props = view_properties()
 
     if not bookings:
-        st.warning("هنوز رزروی ثبت نشده.")
+        st.warning("No bookings have been made yet.")
     else:
-        st.metric("💰 درآمد کل", f"${total_income(bookings):.2f}")
+        # KPI card: sum of all booking totals
+        st.metric("💰 Total Income", f"${total_income(bookings):.2f}")
 
-        st.subheader("📊 رزرو هر ملک")
+        # Bar chart: how many bookings each property has received
+        st.subheader("📊 Bookings per Property")
         counts = bookings_per_property(bookings, props)
         df_counts = pd.DataFrame([{"Property": k, "Bookings": v} for k, v in counts.items()])
         st.bar_chart(df_counts.set_index("Property"))
 
-        st.subheader("📅 درآمد ماهانه")
+        # Line chart: total income grouped by month (sorted chronologically)
+        st.subheader("📅 Monthly Income")
         monthly = monthly_income(bookings)
         df_monthly = pd.DataFrame([{"Month": k, "Income": v} for k, v in sorted(monthly.items())])
         st.line_chart(df_monthly.set_index("Month"))
