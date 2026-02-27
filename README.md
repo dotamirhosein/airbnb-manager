@@ -1,17 +1,20 @@
 # 🏠 Airbnb Manager
 
-A small tool I built to manage properties, guests, and bookings 
-started as a CLI, grew into a web dashboard.
+Property management tool I built for learning.
 
-## What it does
-- Add & view properties and guests
-- Book properties (with conflict detection)
-- Reports: income, bookings per property, monthly breakdown
+## Features
+- Add properties, guests, bookings
+- Conflict detection, auto status update
+- Reports + CSV export
+- CLI + Web Dashboard
 
-## Run it
+## Quick Start
 ```bash
-# Web
+git clone https://github.com/dotamirhosein/airbnb-manager
+cd airbnb-manager
+python3 -m venv venv
+source venv/bin/activate
+pip install streamlit pandas
 streamlit run app.py
 
-# CLI
-python main.py
+![alt text](image.png)
