@@ -17,4 +17,4 @@ source venv/bin/activate
 pip install streamlit pandas
 streamlit run app.py
 
-![alt text](image.png)
+![alt text](streamlit-screenshot.png)
