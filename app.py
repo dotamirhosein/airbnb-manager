@@ -3,7 +3,7 @@ import streamlit as st
 import json
 import pandas as pd
 from datetime import datetime
-
+from database import update_property_status
 # Internal module imports
 from main import add_property, add_guest, view_properties, view_guests, add_booking, view_bookings
 from reports import total_income, bookings_per_property, monthly_income
@@ -121,6 +121,10 @@ elif menu == "Bookings":
                         b = create_booking(prop_idx+1, guest_idx+1, start_str, end_str, total)
                         all_bookings.append(b)
                         save_bookings(all_bookings)
+                        if update_property_status(prop_idx + 1, "booked"):
+                            st.success(f"Reserved + status to booked updated!")
+                        else:
+                            st.error("Reserved but status didn't updated!")
                         st.success(f"Reserved! {nights} Night — ${total:.2f}")
                         st.rerun()  # Refresh so the new booking appears in the table
     else:
@@ -133,6 +137,20 @@ elif menu == "Reports":
     from storage import load_bookings, load_properties
     bookings = view_bookings()
     props = view_properties()
+        
+    monthly = monthly_income(bookings)  # function call
+    df_monthly = pd.DataFrame([{"Month": k, "Income": v} for k, v in sorted(monthly.items())])
+    
+    col1, col2 = st.columns(2)
+    with col2:
+        csv_data = df_monthly.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            "📥 CSV ماهانه",
+            csv_data,
+            "monthly_income.csv",
+            "text/csv"
+        )
+
 
     if not bookings:
         st.warning("No bookings have been made yet.")
