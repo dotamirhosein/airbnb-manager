@@ -1,3 +1,4 @@
+# Internal and stdlib imports 
 from bookings import create_booking
 from properties import create_property
 from storage import save_properties, load_properties, save_guests, load_guests, save_bookings, load_bookings
@@ -8,10 +9,12 @@ from validators import is_valid_date, has_conflict
 
 
 def main():
+    # Load persisted data once for the CLI session
     properties = load_properties()
     guests = load_guests()
     booking_list = load_bookings()
     while True:
+        # Simple text menu loop for CRUD operations and reports
         print("\n1. Add Property")
         print("\n2. View Property")
         print("\n3. Add Guest")
@@ -45,6 +48,7 @@ def main():
         elif choice == "6":
             view_bookings(booking_list)
         elif choice == "7":
+            # Report summaries derived from current in-memory booking data
             print(f"Total Income: ${total_income(booking_list):.2f}")
             print("\nBookings per property: ")
             counts = bookings_per_property(booking_list, properties)
@@ -59,6 +63,7 @@ def main():
             break
 
 def add_property():
+    # Collect user input and build a property record
     name = input("Property name: ")
     address = input("Address: ")
     rooms = int(input("Number of Rooms: "))
@@ -68,12 +73,14 @@ def add_property():
     return create_property(name, address, rooms, price, amenities, status)
 
 def add_guest():
+    # Collect user input and build a guest record
     name = input("Add Guest Name: ")
     phone = int(input("Add Guest Phone-Number: "))
     email = input("Add Guest E-Mail: ")
     return create_guest(name, phone, email)
 
 def view_properties(properties=None):
+    # Allow caller to pass a list, or load from storage if not provided
     if properties is None:
         properties = load_properties()
     if not properties:
@@ -87,6 +94,7 @@ def view_properties(properties=None):
     return properties
 
 def view_guests(guests=None):
+    # Allow caller to pass a list, or load from storage if not provided
     if guests is None:
         guests = load_guests()
     if not guests:
@@ -99,6 +107,7 @@ def view_guests(guests=None):
     return guests
 
 def add_booking(properties, guests, booking_list):
+    # Require at least one property and guest before creating a booking
     if not properties:
         print("No properties available for booking.")
         return None
@@ -108,19 +117,23 @@ def add_booking(properties, guests, booking_list):
     
     print("\n=== Properties ===")
     view_properties(properties)
+    # Convert 1-based menu selection to a 0-based list index
     prop_index = int(input("\nSelect Property number: ")) -1 
     
     print("\n=== Guests ===")
     view_guests(guests)
+    # Convert 1-based menu selection to a 0-based list index
     guest_index = int(input("\nSelect guest number: ")) - 1  
     
     start_date = input("Start date (e.g. 2026-02-20): ")
     end_date = input("End date (e.g. 2026-02-22): ")
 
+    # Validate dates before checking conflicts
     if not is_valid_date(start_date) or not is_valid_date(end_date):
         print("Invalid Date Format!")
         return None
     
+    # Prevent overlapping reservations for the same property
     if has_conflict(start_date, end_date, booking_list, prop_index + 1):
         print("Property is already booked for some/all of these dates!")
         return None
@@ -129,16 +142,19 @@ def add_booking(properties, guests, booking_list):
         start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
         end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
         
+        # Compute total nights and guard against invalid ranges
         nights = (end_date_obj - start_date_obj).days 
         if nights <= 0:
             print("End date must be after start date!")
             return None
         
+        # Calculate total price using the nightly rate from the property
         price_per_night = properties[prop_index]["price_per_night"]
         total_price = nights * price_per_night 
         
         print(f"Total price will be {nights} nights * {price_per_night} = {total_price}")
         
+        # IDs are 1-based in stored booking records
         property_id = prop_index + 1
         guest_id = guest_index + 1
         
@@ -149,6 +165,7 @@ def add_booking(properties, guests, booking_list):
         return None
 
 def view_bookings(bookings=None):
+    # Allow caller to pass a list, or load from storage if not provided
     if bookings is None:
         bookings = load_bookings()
     if not bookings:
