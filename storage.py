@@ -12,7 +12,7 @@ def load_properties(filename="properties.json"):
         return []
     except json.JSONDecodeError:
         return []
-    
+
 def save_guests(guests, filename="guests.json"):
     with open(filename, "w") as f:
         json.dump(guests, f, indent=4)
